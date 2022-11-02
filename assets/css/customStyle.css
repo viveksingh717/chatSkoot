@@ -90,3 +90,20 @@ body {
 .dropdown-toggle::after {
     display: none !important;
 }
+
+#loadFrndLists {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#emojiBox {
+    position: absolute;
+    top: -36vh;
+    background-color: rgba(228, 241, 252, 0.927);
+    border-radius: 5px;
+}
+
+.tabpanel1 {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

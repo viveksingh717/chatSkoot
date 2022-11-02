@@ -12,15 +12,26 @@ function loadMessage(chatKey, frndPhoto){
     var db = firebase.database().ref('chatMessage').child(chatKey);
     db.on('value', function(chats){
         var displayMessage = '';
-
         chats.forEach(function(data){
             var chatMsgs = data.val();
+            var msg = '';
+
+            if(chatMsgs.msgType === 'fileMsg' ){
+                msg = `<img src="${chatMsgs.chatMsg}" class="img-fluid">`;
+            } else if(chatMsgs.msgType === 'audioMsg' ){
+                msg = `<audio class="mt-4" id="audio" controls>
+                    <source src="${chatMsgs.chatMsg}" type="audio/webm" />
+                </audio>`;
+            }
+            else{
+                msg = chatMsgs.chatMsg;
+            }
 
             if (chatMsgs.user_id !== currentUser) 
             {
                 displayMessage += `<div class="row justify-content-end" id="recieve">
                                         <div class="col-6 col-sm-6 col-md-6">
-                                            <p class="border bg-gradient float-end sentMsg">${chatMsgs.chatMsg}
+                                            <p class="border bg-gradient float-end sentMsg">${msg}
                                                 <span class="chatTime mt-3">${chatMsgs.timestamp} PM</span></p>
                                         </div>
                                         <div class="col-2 col-sm-1 col-md-1">
@@ -35,7 +46,7 @@ function loadMessage(chatKey, frndPhoto){
                                         <img src="${firebase.auth().currentUser.photoURL}" class="rounded-circle" alt="User-Logo" height="30px" width="30px">
                                     </div>
                                     <div class="col-6 col-sm-6 col-md-6">
-                                        <p class="border bg-gradient recieveMsg">${chatMsgs.chatMsg}
+                                        <p class="border bg-gradient recieveMsg">${msg}
                                             <span class="chatTime float-end mt-3">${chatMsgs.timestamp} PM</span></p>
                                     </div>
                                 </div>`;
@@ -112,7 +123,9 @@ function hide_chat(){
 
 function sendTextMsg(){
     textMsg = document.getElementById('textMsg').value;
-    var msg = {user_id:currentUser, chatMsg:textMsg, timestamp:new Date().toLocaleDateString()};
+    var msg = {
+        user_id:currentUser, chatMsg:textMsg, msgType:'textMSg', timestamp:new Date().toLocaleDateString()
+    };
 
     sendDb = firebase.database().ref('chatMessage');
 
@@ -131,7 +144,45 @@ function sendTextMsg(){
         document.getElementById('textMsg').value = '';
         document.getElementById('textMsg').focus();
 
-        document.getElementById('msgBox').scrollTo(0, document.getElementById('msgBox').clientHeight);
+        // document.getElementById('msgBox').scrollTo(0, document.getElementById('msgBox').clientHeight);
+    }
+}
+
+function chooseImage() {
+    document.getElementById('fileUpload').click();
+}
+
+function sendImage(event) {
+    var file = event.files[0];
+
+    if (!file.type.match('image.*')) {
+        alert('Please select image file only');
+    }else{
+        var reader = new FileReader();
+
+        reader.addEventListener('load', function() {
+            textMsg = reader.result;
+            
+            var msg = {
+                user_id:currentUser, chatMsg:textMsg, msgType:'fileMsg', timestamp:new Date().toLocaleString()
+            };
+        
+            sendDb = firebase.database().ref('chatMessage');
+        
+            if (sendDb.child(chatKey).push(msg)) {
+                
+        
+                document.getElementById('msgBox').innerHTML += message;
+                document.getElementById('textMsg').value = '';
+                document.getElementById('textMsg').focus();
+        
+                // document.getElementById('msgBox').scrollTo(0, document.getElementById('msgBox').clientHeight);
+            }
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
     }
 }
 
@@ -225,3 +276,106 @@ function fetchFrndList() {
         document.getElementById('UlList').innerHTML = list;
     });                                  
 }
+
+function openSmily() {
+    document.getElementById('smileyBox').removeAttribute('style');
+    // document.getElementsByClassName('tabpanel1').removeAttribute('style');
+}
+
+function hideSmilyPanel() {
+    document.getElementById('smileyBox').setAttribute('style', 'display:none');
+}
+
+function getEmoji(control) {
+    document.getElementById('textMsg').value += control.innerHTML;
+}
+
+function loadAllEmoji() {
+    var emoji = '';
+
+    for(i=128512; i<= 128567; i++){
+        emoji += `<a href="#" style="cursor: pointer; text-decoration: none;" onclick="getEmoji(this)">&#${i};</a>`;
+    }
+
+    document.getElementById('pills-smiley').innerHTML = emoji;
+}
+
+function loadAllEmoji1() {
+    var emoji = '';
+
+    for(i=128101; i<= 129506; i++){
+        emoji += `<a href="#" style="cursor: pointer; text-decoration: none;" onclick="getEmoji(this)">&#${i};</a>`;
+    }
+
+    document.getElementById('pills-flag').innerHTML = emoji;
+}
+
+function changeSendIcon(control) {
+    if (control.value !== '') {
+        document.getElementById('send').removeAttribute('style');
+        document.getElementById('audioMic').setAttribute('style', 'display:none');
+    }else{
+        document.getElementById('send').setAttribute('style', 'display:none');
+        document.getElementById('audioMic').removeAttribute('style');
+    }
+}
+
+//Audio functionality
+let chunk = [];
+let recorder;
+var timeout;
+
+function recordStart(control) {
+    let device = navigator.mediaDevices.getUserMedia({audio:true});
+    device.then((stream)=> {
+        if (recorder === undefined) {  
+            recorder = new MediaRecorder(stream);
+            recorder.ondataavailable = e => {
+                chunk.push(e.data);
+        
+                if (recorder.state === 'inactive') {
+                    let blob = new Blob(chunk, {type:'audio/webm'});
+                    // document.getElementById('audio').innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/webm" />'
+                       var reader = new FileReader();
+        
+                       reader.addEventListener('load', function() {
+                           textMsg = reader.result;
+                           var msg = {
+                               user_id:currentUser, 
+                               chatMsg:textMsg, 
+                               msgType:'audioMsg', 
+                               timestamp:new Date().toLocaleString()
+                           };
+                       
+                           sendDb = firebase.database().ref('chatMessage');
+                       
+                           if (sendDb.child(chatKey).push(msg)) {
+                               document.getElementById('textMsg').value = '';
+                               document.getElementById('textMsg').focus();               
+                           }
+                       }, false);
+               
+                    reader.readAsDataURL(blob);
+                }
+            }
+            recorder.start();
+            control.setAttribute('class', 'fa fa-circle-stop');
+        }
+    });
+
+    if (recorder !== undefined)  {
+        if (control.getAttribute('class').indexOf('circle-stop') !== -1) {
+            recorder.stop();
+            control.setAttribute('class', 'fa fa-microphone')
+        }else{
+            chunk = [];
+            recorder.start();
+            control.setAttribute('class', 'fa fa-circle-stop');
+        }
+    }
+
+}
+
+loadAllEmoji();
+loadAllEmoji1();
+

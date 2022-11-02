@@ -11,13 +11,13 @@
 
     <title>ChatSkoot</title>
 </head>
-<body onload="initializeApp()">
+<body onload="initializeFirebase()">
     <span class="topMargin"></span>
 
     <div class="container-fluid bg-white shadow-lg chatRoom">
         <div class="row h-100">
             <div class="col-md-4 p-0 d-none d-md-block" id="side-1">
-                <div class="card h-100">
+                <div class="card">
                     <div class="card-header">
                         <div class="row">
                             <div class="col-9 col-sm-9 col-md-9 ">
@@ -43,7 +43,7 @@
                         </div>
                     </div>
                     <ul class="list-group list-group-flush" id="loadFrndLists" style="cursor: pointer;">
-                        
+                       
                     </ul>
                 </div>
             </div>
@@ -63,42 +63,63 @@
                             </div>
                             <div class="col-4 col-sm-4 col-md-4 col-lg-3 text-secondary">
                                 <i class="fa-solid fa-magnifying-glass" style="cursor: pointer;"></i>
-                                <i class="fa-solid fa-paperclip clickIcons"></i>
+                                <!-- <i class="fa-solid fa-paperclip clickIcons"></i> -->
+
+                                <span class="dropdown">
+                                    <span class="dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-paperclip clickIcons"></i>
+                                    </span>
+                                    <div class="dropdown-menu" style="cursor: pointer;">
+                                        <a class="dropdown-item" onclick="chooseImage()">
+                                            Image
+                                            <input type="file" id="fileUpload" accept="image/*" onchange="sendImage(this)" style="display: none;">
+                                        </a>
+
+                                        <a class="dropdown-item">Documents</a>
+                                        <a class="dropdown-item">Video</a>
+                                        <!-- <hr class="dropdown-divider"> -->
+                                        <a class="dropdown-item">Camera</a>
+                                    </div>
+                                  </span>
+
                                 <i class="fa-solid fa-ellipsis-vertical clickIcons"></i>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body" id="msgBox">
-                        <!-- <div class="row" id="sent">
-                            <div class="col-2 col-sm-1 col-md-1">
-                                <img src="assets/images/logo/userThumb2.png" alt="User-Logo" height="30px" width="30px">
-                            </div>
-                            <div class="col-6 col-sm-6 col-md-6">
-                                <p class="border bg-gradient recieveMsg">Hello how are you guyz.. how are you guyzhow are you guyzhow are you guyz
-                                    <span class="chatTime float-end mt-3">1:20 PM</span></p>
-                            </div>
-                        </div> -->
-
-                        <!-- <div class="row justify-content-end" id="recieve">
-                            <div class="col-6 col-sm-6 col-md-6">
-                                <p class="border bg-gradient sentMsg">Hello how are you guyz.. how are you guyzhow are you guyzhow are you guyz
-                                    <span class="chatTime float-end mt-3">1:20 PM</span></p>
-                            </div>
-                            <div class="col-2 col-sm-1 col-md-1">
-                                <img src="assets/images/logo/userThumb2.png" alt="User-Logo" height="30px" width="30px">
-                            </div>
-                        </div> -->
-                    </div>
+                    <div class="card-body" id="msgBox"></div>
                     <div class="card-footer">
+
+                        <div class="row mainSmilyDiv" style="position: relative;">
+                            <div class="col-md-8 p-2 shadow-lg emojiBox tabpanel1" id="smileyBox" style="height: 190px; display: none;">
+                                <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                                    <li class="nav-item">
+                                      <button class="nav-link active" id="pills-smiley-tab" data-bs-toggle="pill" data-bs-target="#pills-smiley"  role="tab" aria-controls="pills-smiley" aria-selected="true">
+                                        <i class="fa-regular fa-face-smile"></i></button>
+                                    </li>
+                            
+                                    <li class="nav-item">
+                                      <button class="nav-link" id="pills-flag-tab" data-bs-toggle="pill" data-bs-target="#pills-flag"  role="tab" aria-controls="pills-flag" aria-selected="false"><i class="fa-regular fa-flag"></i></button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content p-2" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="pills-smiley" role="tabpanel" aria-labelledby="pills-smiley-tab"></div>
+
+                                    <div class="tab-pane fade" id="pills-flag" role="tabpanel" aria-labelledby="pills-flag-tab"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-2 col-md-1 text-secondary fs-5">
-                                <i class="fa-regular fa-face-smile"></i>
+                                <i class="fa-regular fa-face-smile" onclick="openSmily()"></i>
                             </div>
                             <div class="col-8 col-md-10">
-                                <input type="text" class="form-control rounded-pill" id="textMsg"  placeholder="Type here.." required>
+                                <input type="text" class="form-control rounded-pill" id="textMsg" onkeyup="changeSendIcon(this)" onfocus="hideSmilyPanel()"  placeholder="Type here.." required>
                             </div>
-                            <div class="col-2 col-md-1 text-secondary fs-5">
-                                <i class="fa-solid fa-microphone float-end"></i>
+                            <div class="col-2 col-md-1 text-secondary fs-5" style="cursor: pointer;">
+                                <i class="fa fa-microphone float-end" id="audioMic" onclick="recordStart(this)"></i>
+                                <i class="fa fa-paper-plane" id="send" style="display: none;"></i>
                             </div>
                         </div>
                     </div>
@@ -136,13 +157,13 @@
     </div>
 
     
-    <!-- <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase-app.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.2.2/firebase.min.js"></script>
-
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.2.2/firebase.min.js"></script> -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase.js"></script>
     <script src="assets/js/firebase_config.js"></script>
+    <script src="assets/js/firebase_messaging.js"></script>
     <script src="assets/js/custom.js"></script>
-
     <script src="assets/js/jQuery.js"></script>
+    
     <script src="assets/js/bootstrap.js"></script>
     <script src="assets/js/fontawesome.js"></script>
     <script src="assets/js/sweetAlert.js"></script>
