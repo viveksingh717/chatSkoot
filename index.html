@@ -20,11 +20,19 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="row">
-                            <div class="col-9 col-sm-9 col-md-9 ">
+                            <div class="col-7 col-sm-7 col-md-7 ">
                                 <img src="assets/images/logo/userThumb2.png" class="rounded-circle" id="user_profile" alt="User-Logo" height="40px" width="40px">
                             </div>
                             <div class="col-1 col-sm-1 col-md-1" style="cursor: pointer;">
                                 <i class="fa-solid fa-circle-left d-md-none" onclick="hide_chat()"></i>
+                            </div>
+                            <div class="col-2 col-sm-2 col-md-2" style="cursor: pointer;">
+                                <div class="" data-bs-toggle="modal" data-bs-target="#notificationModal" onclick="getAllNotification()">
+                                    <i class="fa-solid fa-bell fs-4 text-muted"></i>
+                                    <span class="position-absolute mt-1 translate-middle badge rounded-circle bg-danger" id="notiCounter" style="font-size: 12px;">
+                                        0
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-2 col-sm-2 col-md-2" style="cursor: pointer;">
                                 <div class="dropdown">
@@ -32,7 +40,9 @@
                                         <i class="fa-solid fa-ellipsis-vertical"></i>
                                     </span>
                                     <div class="dropdown-menu">
-                                      <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#frndList" onclick="fetchFrndList()">New Chat</a>
+                                      <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#allUserList" onclick="fetchUserList()">Find Friend</a>
+
+                                      <!-- <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#frndList" onclick="fetchFrndList()">New Chat</a> -->
 
                                       <a class="dropdown-item" onclick="signIn()" id="signInBtn">Sign In</a>
                                       <hr class="dropdown-divider">
@@ -135,8 +145,42 @@
         </div>
     </div>
 
-    <!-- FrndList Modal -->
-    <div class="modal fade" id="frndList">
+    <!-- All UsersList Modal -->
+    <div class="modal fade" id="allUserList">
+        <div class="modal-dialog">
+          <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title text-muted">All Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="UrsList" style="cursor: pointer;">
+                        
+                    </ul>
+                </div>
+          </div>
+        </div>
+    </div>
+
+     <!-- Notification Modal -->
+     <div class="modal fade" id="notificationModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title text-muted">All Notifications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush" id="notify" style="cursor: pointer;">
+                        
+                    </ul>
+                </div>
+          </div>
+        </div>
+    </div>
+
+      <!-- FrndList Modal -->
+      <!-- <div class="modal fade" id="frndList">
         <div class="modal-dialog">
           <div class="modal-content">
                 <div class="modal-header">
@@ -148,19 +192,16 @@
                         
                     </ul>
                 </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Ok</button>
-            </div>
           </div>
         </div>
-    </div>
+    </div> -->
+
 
     
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.2.2/firebase.min.js"></script> -->
     <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-messaging.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.2.2/firebase.min.js"></script> -->
     <script src="assets/js/firebase_config.js"></script>
-    <script src="assets/js/firebase_messaging.js"></script>
     <script src="assets/js/custom.js"></script>
     <script src="assets/js/jQuery.js"></script>
     

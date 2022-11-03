@@ -113,14 +113,6 @@ function hide_chat(){
     document.getElementById('side-2').classList.remove('d-none');
 }
 
-// function onKeyDown() {
-//     document.addEventListener('keydown', function(key){
-//         if (key.which === 13) {
-//             sendTextMsg();
-//         }
-//     });
-// }
-
 function sendTextMsg(){
     textMsg = document.getElementById('textMsg').value;
     var msg = {
@@ -240,41 +232,238 @@ function signOut() {
 }
 
 function fetchFrndList() {
-    document.getElementById('UlList').innerHTML = 
+    // document.getElementById('UlList').innerHTML = 
+    //                                     `<div class="text-center">
+    //                                         <div class="spinner-border fs-5"></div>
+    //                                         <p class="fw-bold">Loading...</p>
+    //                                     </div>`;
+    
+    // var firebaseDb = firebase.database().ref('users');
+    // var list = '';
+    // var frndData = '';
+
+    // firebaseDb.on('value', function(frndDetails){
+
+    //     if (frndDetails.hasChildren()) {
+    //         list = `<li class="list-group-item" style="background-color: #f8f8f8;">
+    //                     <input type="text" name="#" class="form-control rounded" placeholder="Search or Start chat">
+    //                 </li>`;
+    //     }
+
+    //     frndDetails.forEach(function(data){
+    //         frndData = data.val();
+    //         if (frndData.email !==firebase.auth().currentUser.email) {
+    //             list += `<li class="list-group-item list-group-item-action" data-bs-dismiss="modal" onclick="startChat('${data.key}', '${frndData.name}', '${frndData.photoURL}')">
+    //                     <div class="row">
+    //                         <div class="col-md-2">
+    //                             <img src="${frndData.photoURL}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
+    //                         </div>
+    //                         <div class="col-md-10">
+    //                             <div class="user-name">${frndData.name}</div>
+    //                         </div>
+    //                     </div>
+    //                 </li>`; 
+    //         }
+    //     });
+
+    //     document.getElementById('UlList').innerHTML = list;
+    // });                                  
+}
+
+function fetchUserList() {
+    document.getElementById('UrsList').innerHTML = 
                                         `<div class="text-center">
                                             <div class="spinner-border fs-5"></div>
                                             <p class="fw-bold">Loading...</p>
                                         </div>`;
     
-    var firebaseDb = firebase.database().ref('users');
+    var firebaseFrndDb = firebase.database().ref('users');
+    let counterDb = firebase.database().ref('notification');
     var list = '';
+    var userData ='';
 
-    firebaseDb.on('value', function(userDetails){
+    firebaseFrndDb.on('value', function(userDetails){
 
         if (userDetails.hasChildren()) {
             list = `<li class="list-group-item" style="background-color: #f8f8f8;">
-                        <input type="text" name="#" class="form-control rounded" placeholder="Search or Start chat">
-                    </li>`;
+            <input type="text" name="#" class="form-control rounded" placeholder="Search or Start chat">
+            </li>`;
+            document.getElementById('UrsList').innerHTML = list;
         }
 
         userDetails.forEach(function(data){
-            var userData = data.val();
+            userData = data.val();
             if (userData.email !==firebase.auth().currentUser.email) {
-                list += `<li class="list-group-item list-group-item-action" data-bs-dismiss="modal" onclick="startChat('${data.key}', '${userData.name}', '${userData.photoURL}')">
+                counterDb.orderByChild('sendTo').equalTo(data.key).on('value', function(notify){
+                    if (notify.numChildren() > 0 && Object.values(notify.val())[0].sendFrom === currentUser) {
+                        list = `<li class="list-group-item list-group-item-action">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img src="${userData.photoURL}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
+                                </div>
+                                <div class="col-md-10">
+                                    <div class="user-name">
+                                    ${userData.name}
+                                    <button class="btn btn-secondary btn-sm disabled float-end" onclick="sendRequest('${data.key}')"><i class="fa-solid fa-user-plus"></i> Sent </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>`; 
+                        document.getElementById('UrsList').innerHTML += list;
+                    }else{
+                        counterDb.orderByChild('sendFrom').equalTo(data.key).on('value', function(notify){
+                            if (notify.numChildren() > 0 && Object.values(notify.val())[0].sendTo === currentUser) 
+                            {
+                                list = `<li class="list-group-item list-group-item-action">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <img src="${userData.photoURL}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
+                                        </div>
+                                        <div class="col-md-10">
+                                            <div class="user-name">
+                                            ${userData.name}
+                                            <button class="btn btn-success btn-sm float-end" onclick="sendRequest('${data.key}')"> Friend </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>`; 
+                                document.getElementById('UrsList').innerHTML += list;
+                            }else{
+                                list = `<li class="list-group-item list-group-item-action">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <img src="${userData.photoURL}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
+                                        </div>
+                                        <div class="col-md-10">
+                                            <div class="user-name">
+                                            ${userData.name}
+                                            <button class="btn btn-primary btn-sm float-end" onclick="sendRequest('${data.key}')"><i class="fa-solid fa-user-plus"></i> Send Request </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>`; 
+                                document.getElementById('UrsList').innerHTML += list;
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });                                  
+}
+
+function sendRequest(key) {
+    let notifications = {
+        sendTo:key,
+        sendFrom:currentUser,
+        senderName:firebase.auth().currentUser.displayName,
+        senderPhoto:firebase.auth().currentUser.photoURL,
+        status:'Pending',
+        dateTime:new Date().toLocaleString(),
+    }
+
+    firebase.database().ref('notification').push(notifications, function(error){
+        if (error) {
+            alert(error);
+        }else{
+            fetchUserList();
+        }
+    })
+}
+
+function notificationCounter() {
+    let counterDb = firebase.database().ref('notification');
+
+    counterDb.orderByChild('sendTo').equalTo(currentUser).on('value', function(notify){
+        let objsArry = Object.values(notify.val()).filter(n => n.status === 'Pending');
+
+        if (objsArry) {
+            document.getElementById('notiCounter').innerHTML = objsArry.length;
+        }
+    });
+}
+
+function getAllNotification() {
+    document.getElementById('notify').innerHTML = 
+                            `<div class="text-center">
+                                <div class="spinner-border fs-5"></div>
+                                <p class="fw-bold">Loading...</p>
+                            </div>`;
+    
+    // let userDB = firebase.database().ref('users');
+    let notiDB = firebase.database().ref('notification');
+    var list = '';
+    var frndData = '';
+
+    notiDB.orderByChild('sendTo').equalTo(currentUser).on('value', function(notifyy){
+        notifyy.forEach(function(data){
+            notifyData = data.val();
+            if (notifyData.status === 'Pending') {
+                list += `<li class="list-group-item list-group-item-action">
                         <div class="row">
                             <div class="col-md-2">
-                                <img src="${userData.photoURL}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
+                                <img src="${notifyData.senderPhoto}" class="rounded-circle" alt="Users-Logo" height="30px" width="30px">
                             </div>
                             <div class="col-md-10">
-                                <div class="user-name">${userData.name}</div>
+                                <div class="user-name">${notifyData.senderName}
+                                <button class="btn btn-danger btn-sm float-end ms-1" onclick="rejectReq('${data.key}')"><i class="fa-solid fa-user-times"></i> Reject </button>
+
+                                <button class="btn btn-success btn-sm float-end" onclick="acceptReq('${data.key}')"><i class="fa-solid fa-user-plus"></i> Accept </button>
+                                </div>
                             </div>
                         </div>
-                    </li>`; 
+                    </li>`;
             }
         });
 
-        document.getElementById('UlList').innerHTML = list;
+        document.getElementById('notify').innerHTML = list;
     });                                  
+}
+
+function rejectReq(key){
+    let Db1 = firebase.database().ref('notification');
+    Db1.child(key).once('value', function(notifydata){
+        let obj = notifydata.val();
+        console.log(obj);
+        obj.status = 'Reject';
+
+        firebase.database().ref('notification').child(key).update(obj, function(error){
+            if (error) {
+                alert(error);
+            }else{
+                getAllNotification();
+            }
+        });
+    });
+
+}
+
+function acceptReq(key){
+    let Db2 = firebase.database().ref('notification');
+    Db2.child(key).once('value', function(notifydata){
+        var obj = notifydata.val();
+        console.log(obj);
+        obj.status = 'Accept';
+
+        firebase.database().ref('notification').child(key).update(obj, function(error){
+            if (error) {
+                alert(error);
+            }else{
+                let storeDb2 = firebase.database().ref('frndList');
+                var frndDetails = {frndId:obj.sendFrom, userId:obj.sendTo};
+
+                storeDb2.push(frndDetails, function(error){
+                    if (error) {
+                        alert(error);
+                    }else{
+                        loadFrndList();
+                    }
+                });
+                getAllNotification();
+            }
+        });
+    });
+
 }
 
 function openSmily() {

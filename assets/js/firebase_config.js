@@ -73,7 +73,7 @@ const initializeFirebase = () => {
   
       db.on("value", function (users) {
         users.forEach(function (data) {
-          var userData = data.val();
+          userData = data.val();
           if (userData.email === userInfo.email) {
             currentUser = data.key;
             flag = true;
@@ -95,18 +95,20 @@ const initializeFirebase = () => {
           // firebase.database().ref('users').push(user_info, callback);
         }
 
-        const messaging = firebase.messaging();
-        messaging.requestPermission().then(function() {
-          console.log("Have Permission")
-         return messaging.getToken();
-        }).then(function(token) {
-          console.log(token)
-          firebase.database().ref('fcmTokens').child(currentUser).set({token_id:token});
-        }).catch(function() {
-          console.log('Access Denied!');
-        })
+        // const messaging = firebase.messaging();
+        // messaging.usePublicVapidKey("BKC-AqXTH9LC2J2AF3eWlD3GyRjY8eWNjPYDSUTNeCNvO0yXwqTrs-eI0SO4Y0uJQ_X1AxEJ8-qSFcb4N0mfo4k");
+        
+        // messaging.requestPermission().then(function() {
+        //  return messaging.getToken();
+        // }).then(function(token) {
+        //   console.log(token)
+        //   firebase.database().ref('fcmTokens').child(currentUser).set({token_id:token});
+        // }).catch(function() {
+        //   console.log('Access Denied!');
+        // })
     
         loadFrndList();
+        notificationCounter();
       });
     } else {
       document.getElementById("signInBtn").style = "display:block";
